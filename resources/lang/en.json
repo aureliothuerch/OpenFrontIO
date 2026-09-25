@@ -1531,6 +1531,18 @@
     "title_2v2": "2v2 Ranked Matchmaking (ALPHA)",
     "waiting_for_game": "Waiting for game to start..."
   },
+  "mod": {
+    "defcon": {
+      "desc_1": "Maximum readiness",
+      "desc_2": "Armed forces ready for war",
+      "desc_3": "Forces on high alert",
+      "desc_4": "Increased readiness",
+      "level": "DEFCON {level}",
+      "locked_hint": "Only available from DEFCON {level}",
+      "nukes_from": "Nukes from DEFCON {level}",
+      "nukes_released": "Nuclear weapons released: {units}"
+    }
+  },
   "mode_selector": {
     "coming_soon": "Coming Soon",
     "lobbies_unreachable": "Can't reach the public lobbies right now",

@@ -14,6 +14,7 @@ import {
 } from "../../../core/game/Game";
 import { TileRef } from "../../../core/game/GameMap";
 import { Emoji, findClosestBy, flattenedEmojiTable } from "../../../core/Util";
+import { modDefconDecorateRadial } from "../../../mod/client/defcon/DefconUiHooks";
 import { UIState } from "../../UIState";
 import { renderNumber, translateText } from "../../Utils";
 import { GameView, PlayerView } from "../../view";
@@ -598,7 +599,10 @@ export const attackMenuElement: MenuElement = {
 
   subMenu: (params: MenuElementParams) => {
     if (params === undefined) return [];
-    return createMenuElements(params, "attack", "attack");
+    return modDefconDecorateRadial(
+      createMenuElements(params, "attack", "attack"),
+      params,
+    ); // MOD: DEFCON – see src/mod/client/defcon/
   },
 };
 

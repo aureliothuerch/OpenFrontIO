@@ -9,6 +9,11 @@ import {
   UnitType,
 } from "../../../core/game/Game";
 import { UserSettings } from "../../../core/game/UserSettings";
+import {
+  modDefconBlocksUnitView,
+  modDefconHotbarClass,
+  modDefconHotbarHint,
+} from "../../../mod/client/defcon/DefconUiHooks";
 import { Controller } from "../../Controller";
 import { ToggleStructureEvent } from "../../InputHandler";
 import { UIState } from "../../UIState";
@@ -91,6 +96,7 @@ export class UnitDisplay extends LitElement implements Controller {
 
   private canBuild(item: UnitType): boolean {
     if (this.game?.config().isUnitDisabled(item)) return false;
+    if (modDefconBlocksUnitView(this.game, item)) return false; // MOD: DEFCON – see src/mod/client/defcon/
     const player = this.game?.myPlayer();
     switch (item) {
       case UnitType.AtomBomb:
@@ -260,6 +266,9 @@ export class UnitDisplay extends LitElement implements Controller {
                 <div class="p-2">
                   ${translateText("build_menu.desc." + structureKey)}
                 </div>
+                ${
+                  modDefconHotbarHint(this.game, unitType) // MOD: DEFCON – see src/mod/client/defcon/
+                }
                 ${unitType === UnitType.Warship
                   ? html`<div
                       class="mt-1 px-2 py-1 text-[10px] text-cyan-300 border-t border-white/10"
@@ -282,6 +291,9 @@ export class UnitDisplay extends LitElement implements Controller {
             : "opacity-40"} border border-slate-500 rounded-sm px-0.5 pb-0.5 flex items-center gap-0.5 cursor-pointer
              ${selected ? "hover:bg-gray-400/10" : "hover:bg-gray-800"}
              rounded-sm text-white ${selected ? "bg-slate-400/20" : ""}
+             ${
+            modDefconHotbarClass(this.game, unitType) // MOD: DEFCON – see src/mod/client/defcon/
+          }
              ${this.tutorialHighlight === unitType ? "tutorial-highlight" : ""}"
           @click=${() => {
             if (selected) {

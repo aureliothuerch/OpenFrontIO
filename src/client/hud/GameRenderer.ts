@@ -1,5 +1,6 @@
 import { EventBus } from "../../core/EventBus";
 import { UserSettings } from "../../core/game/UserSettings";
+import { createModControllers } from "../../mod/client/ModControllers";
 import { Controller } from "../Controller";
 import { AmbienceController } from "../controllers/AmbienceController";
 import { AttackingTroopsController } from "../controllers/AttackingTroopsController";
@@ -364,6 +365,7 @@ export function createRenderer(
     alertFrame,
     performanceOverlay,
   ];
+  layers.push(...createModControllers(game, eventBus)); // MOD: DEFCON – see src/mod/client/defcon/
 
   return new GameRenderer(
     transformHandler,
