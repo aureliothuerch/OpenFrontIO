@@ -104,6 +104,31 @@ When a feature needs an asset that does not exist yet:
 
 Existing OpenFront assets outside `proprietary/` may be reused (CC BY-SA 4.0). Modified versions of them must stay CC BY-SA 4.0.
 
+## Host Settings & Game Modes (ALWAYS CHECK)
+
+Hosts can change almost everything in a lobby. **Every mod feature must work correctly with every combination of settings.** Check these before designing or changing a feature:
+
+- **Disabled units** (`disabledUnits`, `config().isUnitDisabled(type)`): e.g. `AtomBomb`, `HydrogenBomb`, `MIRV`, `MissileSilo`, `SAMLauncher`. Use the `Nukes` unit group instead of hardcoding single nuke types.
+- **Modifiers** (`publicGameModifiers`): `isNukesDisabled`, `isSAMsDisabled`, `isAlliancesDisabled`, `isPeaceTime`, `isWaterNukes`, `isDoomsdayClock`, `startingGold`, `goldMultiplier`, …
+- **Upstream end-game systems:** `doomsdayClock` (territory bar with troop bleed) and `overtime` (anti-stalemate).
+- **Game type and mode:** Singleplayer / Public / Private, FFA / Team, ranked 1v1/2v2, nations enabled or disabled.
+- **Teams and alliances are separate systems.** In team mode, players can have teammates AND alliances with players from other teams at the same time. Never treat "teammate" and "ally" as the same thing.
+
+Rules:
+
+1. **Never re-enable what the host disabled.** A mod feature may only restrict further, never unlock something the settings turned off.
+2. **Degrade gracefully.** If a feature depends on something that is disabled (e.g. nukes off), it must not break, show wrong messages ("Nukes unlocked") or play pointless alarms. Decide explicitly what the feature does in that case.
+3. **Every mod feature needs its own on/off switch** in the mod config, so it can later become a lobby setting.
+4. **Tests must cover the disabled cases**, at least: all nukes disabled, a single nuke type disabled, SAMs disabled, alliances disabled, peace time on, team mode, and team mode with alliances between different teams.
+5. **Decide for every feature how it works per player vs. per team** (e.g. who is attacked, who counts as betrayed, who is shown a warning).
+6. **In every plan, list which settings affect the feature and how it behaves with each.**
+
+## Reuse Existing Mechanics
+
+Before building a feature, check whether upstream already has something similar (e.g. `DoomsdayClock`, `overtime`, `isPeaceTime`, traitor/alliance-break logic) and point out overlaps in the plan before writing code.
+
+We may extend, replace or turn off upstream mechanics. But **never delete or rewrite upstream code** to do so: turn the upstream mechanic off through a config override or a small `// MOD:` hook and build our version in `src/mod/`. Same result, no merge conflicts.
+
 ## License & Branding
 
 - Code is **AGPL-3.0**, assets are **CC BY-SA 4.0**. Our full source (incl. server) must stay public.
