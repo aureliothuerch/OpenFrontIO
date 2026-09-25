@@ -2,6 +2,54 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## This Repo Is a Fork
+
+This is a **fork of [OpenFront.io](https://github.com/openfrontio/OpenFrontIO)**. Our game adds a nuke-escalation layer on top of OpenFront: a global DEFCON system, a control-center look and sound, an advisor voice, doctrines and a small research system. Design doc: https://claude.ai/code/artifact/0f16aa7b-9a31-490d-88fb-624533bcac49
+
+**Top priority: stay mergeable with upstream.** OpenFront is actively developed and we pull its updates regularly. Every change must be written so that `git merge upstream/main` produces as few conflicts as possible.
+
+## Mod Folder Rules (IMPORTANT)
+
+All of our own code lives in `src/mod/`, mirroring the upstream layers:
+
+```
+src/mod/
+  core/     # Our deterministic simulation logic (DEFCON, doctrines, research)
+  client/   # Our rendering, UI, sounds, advisor voice, newspaper
+  server/   # Our server-side additions (only if really needed)
+tests/mod/  # Tests for src/mod/core
+```
+
+1. **New features go in `src/mod/`**, never as rewrites of upstream files.
+2. **Upstream files (`src/core`, `src/client`, `src/server`) get only minimal "hook" edits**: ideally one line that calls into `src/mod/`. Mark every such edit:
+   ```ts
+   // MOD: DEFCON hook – see src/mod/core/defcon/
+   ```
+   Before editing an upstream file, check whether a hook already exists and reuse it.
+3. **Change balance values through config overrides** in `src/mod/`, not by editing numbers inside upstream code.
+4. **Never reformat, rename or reorganize upstream files.** Unrelated diffs cause merge conflicts.
+5. **`src/mod/core/` follows the same rules as `src/core/`**: pure TypeScript, no external dependencies, fully deterministic (seeded PRNG, no floating-point math), and every change needs tests in `tests/mod/`.
+6. If a feature truly cannot be done with a small hook, stop and explain why before making a larger upstream edit.
+
+## Upstream Workflow
+
+```bash
+git remote add upstream https://github.com/openfrontio/OpenFrontIO.git  # once
+git fetch upstream
+git merge upstream/main          # merge often (ideally weekly)
+git cherry-pick <commit>         # later, once we diverge: pull single fixes only
+```
+
+- Resolve conflicts by keeping upstream's version and re-applying our `// MOD:` hooks.
+- After every merge: `npm test` and `npm run lint` must pass.
+- To list all our hooks in upstream files: `grep -rn "// MOD:" src/core src/client src/server`
+
+## License & Branding
+
+- Code is **AGPL-3.0**, assets are **CC BY-SA 4.0**. Our full source (incl. server) must stay public.
+- Keep the "© OpenFront and Contributors" notice visible (footer and loading screen). Never remove it.
+- **Never use anything from `proprietary/`** (OpenFront name, logo, branding). Our own branding lives in `src/mod/` / our own asset folders.
+
 ## Commands
 
 ```bash
@@ -31,7 +79,7 @@ OpenFront.io is a real-time multiplayer territorial strategy game. There are fou
 1. **`src/core/`** — Deterministic game simulation. Pure TypeScript with **no external dependencies**. Must remain fully deterministic (seeded PRNG, no floating-point math). Runs in a Web Worker thread. All `src/core` changes **must** include tests.
 2. **`src/client/`** — Rendering (Pixi.js/WebGL), UI (Lit web components + Tailwind CSS 4), WebSocket communication.
 3. **`src/server/`** — Game coordination, intent relay, WebSocket management (Node.js/Express/ws).
-4. **API** — Closed-source Cloudflare Worker handling auth, stats, cosmetics, monetization. Not in this repo.
+4. **API** — Closed-source Cloudflare Worker handling auth, stats, cosmetics, monetization. Not in this repo. Our fork needs its own solution for this.
 
 ### Simulation Flow (Intent → Execution)
 
@@ -48,6 +96,8 @@ Intents and all wire messages are Zod-validated schemas defined in `src/core/Sch
 Every WebSocket frame is a compact binary encoding of those schemas
 (`src/core/ZbinWire.ts`, library docs in `zbin/README.md`). HTTP stays JSON.
 
+New intents for our features (e.g. doctrine choice) should be defined in `src/mod/core/` and registered in `Schemas.ts` with a `// MOD:` hook.
+
 ### CDN / Static Assets
 
 The game server only serves `index.html` and the WebSocket. All other assets (JS bundle, images, maps, worker) come from a CDN bucket. `CDN_BASE` is an empty string in dev (falls back to same-origin) and a full origin (e.g. `https://cdn.example.com`) in production. It is set as both a Vite build-time variable and a server runtime env var.
@@ -56,6 +106,7 @@ The game server only serves `index.html` and the WebSocket. All other assets (JS
 
 | File                        | Purpose                                |
 | --------------------------- | -------------------------------------- |
+| `src/mod/`                  | **All of our own code**                |
 | `src/core/Schemas.ts`       | All intent/message types (Zod schemas) |
 | `src/core/GameRunner.ts`    | Simulation orchestrator                |
 | `src/core/game/GameImpl.ts` | Game state implementation              |
@@ -70,18 +121,18 @@ The game server only serves `index.html` and the WebSocket. All other assets (JS
 
 ## UI Text / i18n
 
-All user-visible text must go through `translateText()` and have a corresponding entry added to `resources/lang/en.json`. Translations are managed via Crowdin. DO NOT modify any other translation files.
+All user-visible text must go through `translateText()` and have a corresponding entry in `resources/lang/en.json`. For our features, use keys prefixed with `mod.` (e.g. `mod.defcon.level_changed`) and keep them together in one block to reduce merge conflicts. Translations are managed via Crowdin. DO NOT modify any other translation files.
 
 ## Testing Patterns
 
-Tests use a `setup()` helper from `tests/util/Setup.ts` that creates a full game instance with map data from `tests/testdata/maps/`. Write tests that exercise the core simulation directly — not mocks.
+Tests use a `setup()` helper from `tests/util/Setup.ts` that creates a full game instance with map data from `tests/testdata/maps/`. Write tests that exercise the core simulation directly — not mocks. Our tests go in `tests/mod/`.
 
 ## Tech Stack
 
 - **Bundler:** Vite + TypeScript 5.7
 - **Rendering:** Pixi.js (WebGL)
 - **UI Components:** Lit (LitElement) + Tailwind CSS 4
-- **Audio:** Howler.js
+- **Audio:** Howler.js (use this for alarms and the advisor voice)
 - **Schemas/Validation:** Zod
 - **Testing:** Vitest
 - **Server:** Node.js, Express, ws (WebSocket)
