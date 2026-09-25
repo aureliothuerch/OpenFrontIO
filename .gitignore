@@ -32,3 +32,4 @@ map-generator/map-generator.exe
 # up after each case; ignored so a crashed run cannot dirty the tree.
 .tmp-desktop-cli-*
 docs/GameDesign.md
+docs/CodingModes.md
