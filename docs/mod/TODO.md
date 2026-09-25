@@ -5,11 +5,11 @@
 ## Steps
 
 - [x] Branch `feature/defcon`, move the roadmap to `docs/mod/ROADMAP.md` (private), create this file
-- [ ] Core: `ModConfig`, `ModGameConfig`, `DefconRules`, `DefconSettings`, `DefconExecution`, `DefconState`
-- [ ] Core hooks: GameRunner, ExecutionRegistry, GameUpdates, PlayerImpl, GameImpl, NationNuke, NationMIRV, Schemas
-- [ ] Client: controller, HUD, banner/alarm (`decideDefconAnnouncement`), texts, sound
-- [ ] Client hooks: GameRenderer, UnitDisplay, BuildMenu, RadialMenuElements
-- [ ] Tests in `tests/mod/` (rules, execution, host settings, nuke lock, snapshots, announce, texts)
+- [x] Core: `ModConfig`, `ModGameConfig`, `DefconRules`, `DefconSettings`, `DefconExecution`, `DefconState`
+- [x] Core hooks: GameRunner, ExecutionRegistry, GameUpdates, PlayerImpl, GameImpl, NationNuke, NationMIRV, Schemas
+- [x] Client: controller, HUD, banner/alarm (`decideDefconAnnouncement`), texts, sound
+- [x] Client hooks: GameRenderer, UnitDisplay, BuildMenu, RadialMenuElements
+- [x] Tests in `tests/mod/` (rules, execution, host settings, nuke lock, snapshots, announce, texts)
 - [ ] `npm test`, `npm run lint`, `tsc`, prettier all green
 
 ## Assets
