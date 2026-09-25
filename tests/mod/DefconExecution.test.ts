@@ -596,7 +596,7 @@ describe("DefconExecution: time and level", () => {
         levels.push(exec.level());
       }
 
-      // With the shipped numbers: 4:00 / 8:00 / 12:00 / 16:00.
+      // With the shipped numbers: 3:12 / 6:24 / 9:36 / 12:48.
       expect(offsets(exec, clockStart)).toEqual(expectedOffsets(d, 0));
       for (const l of STEP_LEVELS) {
         expect(exec.reachedAtTick(l)).toBe(clockStart + d.latestTicks[l]);

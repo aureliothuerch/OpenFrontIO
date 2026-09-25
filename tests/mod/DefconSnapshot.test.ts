@@ -368,7 +368,7 @@ function expectOnTrack(runner: GameRunner, ref: Reference): void {
 const LOCKED: Partial<GameConfig> = { mod: { defcon: { lockNukes: true } } };
 
 const VARIANTS: [string, Partial<GameConfig>, boolean][] = [
-  // No level change within the run (DEFCON 4 needs 1:30 after peace time).
+  // No level change within the run (DEFCON 4 needs 1:12 after peace time).
   ["no timer", LOCKED, false],
   // A 5-minute timer shrinks the schedule to its minimum (40%), so DEFCON 4
   // falls inside the run: the change itself crosses snapshots.

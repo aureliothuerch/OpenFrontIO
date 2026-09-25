@@ -53,10 +53,10 @@ export const MOD_CONFIG: ModConfig = {
     enabled: true,
     lockNukes: true,
     nukeUnlockLevel: 2,
-    // 4:00 / 8:00 / 12:00 / 16:00 after peace time, by time alone.
-    latestTicks: { 4: 2400, 3: 4800, 2: 7200, 1: 9600 },
-    // 1:30 / 4:00 / 7:00 / 11:00 after peace time, however much fighting.
-    earliestTicks: { 4: 900, 3: 2400, 2: 4200, 1: 6600 },
+    // 3:12 / 6:24 / 9:36 / 12:48 after peace time, by time alone.
+    latestTicks: { 4: 1920, 3: 3840, 2: 5760, 1: 7680 },
+    // 1:12 / 3:12 / 5:36 / 8:48 after peace time, however much fighting.
+    earliestTicks: { 4: 720, 3: 1920, 2: 3360, 1: 5280 },
     minTicksBetweenSteps: 600,
     newConflictBonusTicks: 300,
     conflictQuietTicks: 3000,

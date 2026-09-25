@@ -470,7 +470,7 @@ describe("scaleForTimer", () => {
   test("the 10-minute ranked example: DEFCON 2 comes at half the usual times", () => {
     const d = MOD_CONFIG.defcon;
     const s = scaleForTimer(d, 10);
-    // With the shipped numbers that is between 3:30 and 6:00.
+    // With the shipped numbers that is between 2:48 and 4:48.
     expect(s.earliestTicks[2]).toBe(Math.floor(d.earliestTicks[2] / 2));
     expect(s.latestTicks[2]).toBe(Math.floor(d.latestTicks[2] / 2));
   });
