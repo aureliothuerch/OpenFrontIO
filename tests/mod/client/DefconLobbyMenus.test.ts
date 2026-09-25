@@ -846,3 +846,77 @@ describe("DEFCON line in the lobby settings summary", () => {
     });
   });
 });
+
+// The singleplayer "custom settings – achievements disabled" warning, as it
+// is really rendered. Upstream shows it only to players with a linked
+// account (achievements need one), so the login is simulated through the
+// modal's real "userMeResponse" document event.
+describe("DEFCON off and the singleplayer achievements warning", () => {
+  const WARNING = "single_modal.options_changed_no_achievements";
+  const LOGGED_IN = {
+    user: { email: "tester@example.com" },
+    player: { achievements: { singleplayerMap: [] } },
+  };
+
+  function mountedModal(): any {
+    const modal = document.createElement("single-player-modal") as any;
+    document.body.append(modal);
+    return modal;
+  }
+
+  function login(detail: unknown): void {
+    document.dispatchEvent(new CustomEvent("userMeResponse", { detail }));
+  }
+
+  /** How often the warning text appears in the rendered menu. */
+  function warnings(modal: any): number {
+    const container = document.createElement("div");
+    render(modal.render(), container);
+    return [...container.querySelectorAll("div")].filter(
+      // The warning box itself, not the wrappers around it.
+      (d) => d.children.length === 0 && d.textContent?.trim() === WARNING,
+    ).length;
+  }
+
+  afterEach(() => {
+    document.querySelectorAll("single-player-modal").forEach((m) => m.remove());
+  });
+
+  it("does not show with the default settings", () => {
+    const modal = mountedModal();
+    login(LOGGED_IN);
+    expect(modal.modLobby.defconEnabled).toBe(true);
+    expect(warnings(modal)).toBe(0);
+  });
+
+  it("shows exactly once when DEFCON is switched off", () => {
+    const modal = mountedModal();
+    login(LOGGED_IN);
+    toggle(modal, DEFCON_KEY, false);
+    expect(warnings(modal)).toBe(1);
+  });
+
+  it("goes away again when DEFCON is switched back on", () => {
+    const modal = mountedModal();
+    login(LOGGED_IN);
+    toggle(modal, DEFCON_KEY, false);
+    expect(warnings(modal)).toBe(1);
+    toggle(modal, DEFCON_KEY, true);
+    expect(warnings(modal)).toBe(0);
+  });
+
+  it("control: an upstream option change shows the same warning", () => {
+    const modal = mountedModal();
+    login(LOGGED_IN);
+    toggle(modal, "game_settings.water_nukes", true);
+    expect(warnings(modal)).toBe(1);
+  });
+
+  it("never shows without a linked account (upstream rule), also with DEFCON off", () => {
+    const modal = mountedModal();
+    login(false);
+    toggle(modal, DEFCON_KEY, false);
+    expect(modal.modLobby.defconEnabled).toBe(false);
+    expect(warnings(modal)).toBe(0);
+  });
+});
