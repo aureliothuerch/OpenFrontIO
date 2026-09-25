@@ -80,6 +80,7 @@ Never commit directly to `main`. `main` must always be playable.
 - Before merging a branch into `main`: `npm test` and `npm run lint` must pass.
 - Keep branches small and short-lived. Merge them into `main` often.
 - Do not push, merge into `main` or delete branches without asking first.
+- Never add Co-Authored-By, "Generated with Claude Code" or Claude-Session lines to commit messages or PRs.
 
 ## TODO File
 
