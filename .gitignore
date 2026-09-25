@@ -33,4 +33,6 @@ map-generator/map-generator.exe
 .tmp-desktop-cli-*
 docs/GameDesign.md
 docs/CodingModes.md
-docs/Roadmap.md
+docs/mod/ROADMAP.md
+
+CLAUDE.md
