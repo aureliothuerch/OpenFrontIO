@@ -1,6 +1,6 @@
 # TODO – current milestone
 
-**Feature 1: DEFCON + nuke lock + indicator + banner/alarm on DEFCON change** (branch `feature/defcon`)
+**Feature 1: DEFCON + nuke lock + indicator + banner/alarm (incl. pace and host/solo switch)** (branch `feature/defcon`)
 
 ## Steps
 
@@ -11,6 +11,10 @@
 - [x] Client hooks: GameRenderer, UnitDisplay, BuildMenu, RadialMenuElements
 - [x] Tests in `tests/mod/` (rules, execution, host settings, nuke lock, snapshots, announce, texts)
 - [x] `npm test`, `npm run lint`, `tsc`, prettier all green (only the 3 known failures: 2× jq, 1× number format)
+- [ ] DEFCON pace 20% faster. New values for `src/mod/core/ModConfig.ts`:
+  - `latestTicks { 4: 1920, 3: 3840, 2: 5760, 1: 7680 }` (3:12 / 6:24 / 9:36 / 12:48)
+  - `earliestTicks { 4: 720, 3: 1920, 2: 3360, 1: 5280 }` (1:12 / 3:12 / 5:36 / 8:48)
+- [ ] Switch "DEFCON on/off" in the host lobby and the singleplayer menu. Prepared via `GameConfig.mod.defcon.enabled`; default: on. (The server only copies host patches listed in `src/server/ConfigPatch.ts`, so `mod` needs to go there too.)
 
 ## Assets
 
