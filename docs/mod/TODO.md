@@ -16,6 +16,7 @@
   - `latestTicks { 4: 1920, 3: 3840, 2: 5760, 1: 7680 }` (3:12 / 6:24 / 9:36 / 12:48)
   - `earliestTicks { 4: 720, 3: 1920, 2: 3360, 1: 5280 }` (1:12 / 3:12 / 5:36 / 8:48)
 - [x] Switch "DEFCON on/off" in the host lobby and the singleplayer menu (`GameConfig.mod.defcon.enabled`, default on). Other players see "DEFCON: Disabled" in the lobby when it is off; only the host can change it. Later mod lobby switches plug into `src/mod/client/ModLobbySettings.ts` and reuse the same hooks.
+- [x] Feature doc `docs/mod/DEFCON.md`
 
 ## Assets
 

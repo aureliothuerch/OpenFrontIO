@@ -91,6 +91,13 @@ Keep a short task list in `docs/mod/TODO.md` so progress survives between sessio
 - Use checkboxes: `- [ ]` open, `- [x]` done. Update them as you work.
 - Keep it short: regularly remove finished items or condense them into a one-line summary at the bottom.
 
+## Feature Documentation
+
+- Every mod feature gets its own doc in `docs/mod/<FEATURE>.md` (English), created together with the feature (e.g. `docs/mod/DEFCON.md`).
+- When behavior, config values or hooks of a feature change, update its doc in the same commit.
+- Before working on a feature that builds on another one, read that feature's doc first.
+- Player-facing rules and the reasons behind them live in the private design doc (`docs/GameDesign.md`). Do not change it unless the user asks; instead tell the user when a rule there no longer matches the code.
+
 ## Assets (Graphics, Sounds, Voice)
 
 Our own assets live in `resources/mod/` (e.g. `resources/mod/sounds/`, `resources/mod/images/`), never mixed into upstream asset folders.
