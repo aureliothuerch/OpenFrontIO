@@ -44,6 +44,22 @@ git cherry-pick <commit>         # later, once we diverge: pull single fixes onl
 - After every merge: `npm test` and `npm run lint` must pass.
 - To list all our hooks in upstream files: `grep -rn "// MOD:" src/core src/client src/server`
 
+## Branching
+
+- **`main` must always be playable.** Never commit directly to `main`.
+- **One branch per feature**, named `mod/<feature>` (e.g. `mod/defcon`, `mod/advisor-voice`). Fixes use `fix/<topic>`.
+- **Upstream updates** happen on their own branch, never directly on `main`:
+  ```bash
+  git checkout -b upstream-sync main
+  git fetch upstream
+  git merge upstream/main
+  npm test && npm run lint
+  ```
+  Only merge `upstream-sync` into `main` once tests and lint pass.
+- Before merging a feature branch into `main`: `npm test` and `npm run lint` must pass, and the game must start with `npm run dev`.
+- Keep branches short-lived. Merge `main` into long-running feature branches regularly to avoid big conflicts.
+- Before starting work, check which branch is checked out. If it's `main`, create a new branch first.
+
 ## License & Branding
 
 - Code is **AGPL-3.0**, assets are **CC BY-SA 4.0**. Our full source (incl. server) must stay public.
