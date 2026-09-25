@@ -4,8 +4,9 @@ import { scaleForTimer } from "./DefconRules";
 
 /**
  * The DEFCON tuning for one game: MOD_CONFIG, with the per-game switches from
- * `GameConfig.mod.defcon` on top, scaled for the game's timer. A pure function
- * of the game config, so a restored game derives exactly the same values.
+ * `GameConfig.mod.defcon` on top, scaled for the time the game's timer leaves
+ * after peace time. A pure function of the game config, so a restored game
+ * (and the client) derive exactly the same values.
  */
 export function defconSettings(config: Config): DefconTuning {
   const gameConfig = config.gameConfig();
@@ -18,5 +19,6 @@ export function defconSettings(config: Config): DefconTuning {
       lockNukes: override?.lockNukes ?? base.lockNukes,
     },
     gameConfig.maxTimerValue,
+    config.spawnImmunityDuration(),
   );
 }

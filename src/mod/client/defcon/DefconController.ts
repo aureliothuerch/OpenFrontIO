@@ -36,6 +36,8 @@ export class DefconController implements Controller {
   private tuning: DefconTuning | null = null;
   private hud: DefconHud | null = null;
   private level = DEFCON_START_LEVEL;
+  /** The simulation's game-over verdict (see DefconClientState.gameOver). */
+  private simGameOver = false;
   private announce: AnnounceState = INITIAL_ANNOUNCE_STATE;
   private catchingUpTicks = 0;
   /** The change whose banner is up, and the tick it went up. */
@@ -58,6 +60,7 @@ export class DefconController implements Controller {
   private start(): void {
     this.tuning = null;
     this.level = DEFCON_START_LEVEL;
+    this.simGameOver = false;
     this.announce = INITIAL_ANNOUNCE_STATE;
     this.catchingUpTicks = 0;
     this.banner = null;
@@ -76,7 +79,11 @@ export class DefconController implements Controller {
     }
 
     this.tuning = tuning;
-    setDefconClientState(this.game, { level: this.level, tuning });
+    setDefconClientState(this.game, {
+      level: this.level,
+      tuning,
+      gameOver: this.simGameOver,
+    });
     this.hud = this.mountHud(reused ?? new DefconHud());
     this.render();
   }
@@ -106,7 +113,12 @@ export class DefconController implements Controller {
         : null;
     if (last !== null) {
       this.level = last.level;
-      setDefconClientState(this.game, { level: last.level, tuning });
+      this.simGameOver = last.gameOver;
+      setDefconClientState(this.game, {
+        level: last.level,
+        tuning,
+        gameOver: last.gameOver,
+      });
     }
 
     if (this.game.isCatchingUp()) {
@@ -121,7 +133,8 @@ export class DefconController implements Controller {
       tick,
       catchingUp: this.catchingUpTicks >= CATCHING_UP_THRESHOLD_TICKS,
       replay: this.game.config().isReplay(),
-      gameOver: this.game.gameOver(),
+      // No banner once either side considers the game over.
+      gameOver: this.game.gameOver() || this.simGameOver,
       windowTicks: tuning.announceWindowTicks,
     });
     this.announce = result.next;
@@ -162,7 +175,7 @@ export class DefconController implements Controller {
         this.level,
         tuning,
         config,
-        this.game.gameOver(),
+        this.simGameOver,
       ),
       banner:
         this.banner === null

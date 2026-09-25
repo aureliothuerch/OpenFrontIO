@@ -499,6 +499,7 @@ export const OvertimeConfigSchema = z.object({
 });
 
 export const GameConfigSchema = z.object({
+  mod: ModGameConfigSchema.optional(), // MOD: mod lobby settings – see src/mod/core/ModGameConfig.ts
   gameMap: z.enum(GameMapType),
   difficulty: z.enum(Difficulty),
   donateGold: z.boolean(), // Configures donations to humans only
@@ -509,7 +510,6 @@ export const GameConfigSchema = z.object({
   gameMapSize: z.enum(GameMapSize),
   doomsdayClock: DoomsdayClockConfigSchema.optional(),
   overtime: OvertimeConfigSchema.optional(),
-  mod: ModGameConfigSchema.optional(), // MOD: mod lobby settings – see src/mod/core/ModGameConfig.ts
   publicGameModifiers: z
     .object({
       isCompact: z.boolean().optional(),

@@ -10,7 +10,7 @@
 - [x] Client: controller, HUD, banner/alarm (`decideDefconAnnouncement`), texts, sound
 - [x] Client hooks: GameRenderer, UnitDisplay, BuildMenu, RadialMenuElements
 - [x] Tests in `tests/mod/` (rules, execution, host settings, nuke lock, snapshots, announce, texts)
-- [ ] `npm test`, `npm run lint`, `tsc`, prettier all green
+- [x] `npm test`, `npm run lint`, `tsc`, prettier all green (only the 3 known failures: 2× jq, 1× number format)
 
 ## Assets
 
@@ -27,3 +27,4 @@
 - Do the DEFCON numbers feel right (`src/mod/core/ModConfig.ts`)?
 - Do all nations fire at once when DEFCON 2 arrives? If so, stagger them in mod code only.
 - Does the timer scaling feel right in ranked games?
+- Extremfall lange Peace Time + kurzer Timer: DEFCON 2 kann zu spät kommen, DEFCON 1 evtl. nie. Vor Feature 2 (Doomsday) prüfen, dass DEFCON 1 in Timer-Lobbys erreichbar ist.

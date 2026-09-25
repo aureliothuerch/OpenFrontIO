@@ -4,7 +4,7 @@ import type {
   MenuElement,
   MenuElementParams,
 } from "../../../client/hud/layers/RadialMenuElements";
-import { translateText } from "../../../client/Utils";
+import { showToast, translateText } from "../../../client/Utils";
 import type { GameView } from "../../../client/view";
 import type { UnitType } from "../../../core/game/Game";
 import { blocksUnit, NUKE_WEAPON_TYPES } from "../../core/defcon/DefconRules";
@@ -30,7 +30,7 @@ export function modDefconBlocksUnitView(
 ): boolean {
   const state = defconClientState(game);
   if (state === null || game === null || game === undefined) return false;
-  return blocksUnit(state.level, unitType, state.tuning, game.gameOver());
+  return blocksUnit(state.level, unitType, state.tuning, state.gameOver);
 }
 
 /** The translated red hint for a DEFCON-locked nuke button, or null. */
@@ -53,7 +53,7 @@ function lockedHintRef(
     state.level,
     state.tuning,
     game.config(),
-    game.gameOver(),
+    state.gameOver,
   );
 }
 
@@ -179,7 +179,8 @@ function withHint(items: readonly TooltipItem[], hint: string): TooltipItem[] {
  *
  * RadialMenu paints every disabled item grey and ignores its color, so a
  * locked nuke stays "enabled" to show the dark red; clicking it only closes
- * the menu (the simulation rejects a locked nuke anyway). Once DEFCON unlocks
+ * the menu and shows the hint as a toast (the simulation rejects a locked nuke
+ * anyway). Once DEFCON unlocks
  * nukes, every function falls back to the upstream element.
  */
 export function modDefconDecorateRadial(
@@ -219,6 +220,9 @@ function decorateRadialItem(item: MenuElement, game: GameView): MenuElement {
         : (p) => (locked() ? [] : upstreamSubMenu(p)),
     action: (p) => {
       if (locked()) {
+        // Tooltips only show on mouse hover, so tell touch players too.
+        const hint = modDefconLockedHint(game, unitType);
+        if (hint !== null) showToast(hint, "red", 2500);
         p.closeMenu();
         return;
       }

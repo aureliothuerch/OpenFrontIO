@@ -599,10 +599,11 @@ export const attackMenuElement: MenuElement = {
 
   subMenu: (params: MenuElementParams) => {
     if (params === undefined) return [];
+    // MOD: DEFCON red locked nukes (wraps the next statement) – see src/mod/client/defcon/
     return modDefconDecorateRadial(
       createMenuElements(params, "attack", "attack"),
       params,
-    ); // MOD: DEFCON – see src/mod/client/defcon/
+    );
   },
 };
 

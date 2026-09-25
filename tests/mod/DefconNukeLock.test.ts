@@ -1,6 +1,7 @@
 import { vi } from "vitest";
 import { MirvExecution } from "../../src/core/execution/MIRVExecution";
 import { MissileSiloExecution } from "../../src/core/execution/MissileSiloExecution";
+import { NationMIRVBehavior } from "../../src/core/execution/nation/NationMIRVBehavior";
 import { NationExecution } from "../../src/core/execution/NationExecution";
 import { NukeExecution } from "../../src/core/execution/NukeExecution";
 import { SAMLauncherExecution } from "../../src/core/execution/SAMLauncherExecution";
@@ -608,6 +609,15 @@ describe("DEFCON nuke lock: nations", () => {
     startDefcon(game, SLOW);
     const testNation = new Nation(new Cell(25, 25), nation.info());
 
+    // The MOD hook in considerMIRV must stop MIRV planning before the nation
+    // picks a target and sends its attack emoji. The core lock alone would
+    // only fail the final canBuild, after the emoji.
+    const planned = vi.spyOn(
+      NationMIRVBehavior.prototype as unknown as {
+        maybeSendMIRV: (enemy: unknown) => void;
+      },
+      "maybeSendMIRV",
+    );
     let everLaunched = false;
     runNation(game, testNation, "locked", () => {
       everLaunched ||= nukeUnits(game).length > 0;
@@ -616,6 +626,7 @@ describe("DEFCON nuke lock: nations", () => {
     expect(defconLevel(game)).toBe(5);
     expect(everLaunched).toBe(false);
     expect(game.nationMirvTargets().size).toBe(0);
+    expect(planned).not.toHaveBeenCalled();
 
     advanceTo(game, UNLOCK_LEVEL, 2000);
     const unlocked = runNation(
@@ -628,5 +639,7 @@ describe("DEFCON nuke lock: nations", () => {
     );
     expect(unlocked.launched).toBe(true);
     expect(game.nationMirvTargets().has(human.id())).toBe(true);
+    expect(planned).toHaveBeenCalled(); // the spy does see real planning
+    planned.mockRestore();
   }, 60_000);
 });

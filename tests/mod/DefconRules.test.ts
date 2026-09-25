@@ -395,11 +395,38 @@ describe("timerScalePercent", () => {
 
   test("always an integer percentage between the minimum and 100", () => {
     for (let t = 1; t <= 120; t++) {
-      const p = timerScalePercent(t, T);
-      expect(Number.isInteger(p)).toBe(true);
-      expect(p).toBeGreaterThanOrEqual(T.timerMinScalePercent);
-      expect(p).toBeLessThanOrEqual(100);
+      for (const peace of [0, 50, 300, 2400, 3000, 72000]) {
+        const p = timerScalePercent(t, T, peace);
+        expect(Number.isInteger(p)).toBe(true);
+        expect(p).toBeGreaterThanOrEqual(T.timerMinScalePercent);
+        expect(p).toBeLessThanOrEqual(100);
+      }
     }
+  });
+
+  // The DEFCON clock only starts when peace time ends, the timer before it:
+  // what counts is the time the timer leaves after peace time.
+  test("peace time counts against the timer", () => {
+    expect(timerScalePercent(10, T, 3000)).toBe(40); // 5 min left: 25% -> 40%
+    expect(timerScalePercent(20, T, 6000)).toBe(50); // 10 min left
+    expect(timerScalePercent(15, T, 2400)).toBe(55); // 11 min left
+    expect(timerScalePercent(10, T, 300)).toBe(47); // ranked 1v1: 9.5 min
+    expect(timerScalePercent(15, T, 300)).toBe(72); // ranked 1v1: 14.5 min
+    expect(timerScalePercent(10, T, 600)).toBe(45); // ranked 2v2: 9 min
+    expect(timerScalePercent(15, T, 600)).toBe(70); // ranked 2v2: 14 min
+    expect(timerScalePercent(20, T, 50)).toBe(99); // default 5 s immunity
+  });
+
+  test("peace time longer than the timer: clamped at the minimum", () => {
+    expect(timerScalePercent(5, T, 6000)).toBe(40); // nothing left
+    expect(timerScalePercent(10, T, 72000)).toBe(40);
+  });
+
+  test("peace time never lengthens the schedule", () => {
+    expect(timerScalePercent(30, T, 3000)).toBe(100); // 25 min left
+    expect(timerScalePercent(20, T, 0)).toBe(100);
+    expect(timerScalePercent(null, T, 72000)).toBe(100); // no timer
+    expect(timerScalePercent(undefined, T, 3000)).toBe(100);
   });
 });
 
@@ -446,6 +473,29 @@ describe("scaleForTimer", () => {
     // With the shipped numbers that is between 3:30 and 6:00.
     expect(s.earliestTicks[2]).toBe(Math.floor(d.earliestTicks[2] / 2));
     expect(s.latestTicks[2]).toBe(Math.floor(d.latestTicks[2] / 2));
+  });
+
+  test("with peace time, DEFCON 2 by time still comes before the timer ends", () => {
+    const d = MOD_CONFIG.defcon;
+    for (const [timer, peace, percent] of [
+      [10, 3000, 40],
+      [20, 6000, 50],
+      [15, 2400, 55],
+      [10, 300, 47],
+      [15, 600, 70],
+    ]) {
+      const s = scaleForTimer(d, timer, peace);
+      expect(s.latestTicks[2]).toBe(
+        Math.floor((d.latestTicks[2] * percent) / 100),
+      );
+      expect(s.minTicksBetweenSteps).toBe(
+        Math.floor((d.minTicksBetweenSteps * percent) / 100),
+      );
+      expect(peace + s.latestTicks[2]).toBeLessThan(timer * 600);
+      // Bonuses are never scaled.
+      expect(s.newConflictBonusTicks).toBe(d.newConflictBonusTicks);
+      expect(s.betrayalBonusTicks).toBe(d.betrayalBonusTicks);
+    }
   });
 
   test("never longer: 20, 30, no timer give the unchanged tuning", () => {

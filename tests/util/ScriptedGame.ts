@@ -72,6 +72,7 @@ export function scriptedGameStart(
     gameID: "SNAPTEST1",
     lobbyCreatedAt: 0,
     config: {
+      mod: { defcon: { lockNukes: false } }, // MOD: DEFCON runs, but scripted nukes must fire – see src/mod/core/ModGameConfig.ts
       gameMap: GameMapType.World,
       gameMapSize: GameMapSize.Compact,
       gameMode: GameMode.FFA,
@@ -86,7 +87,6 @@ export function scriptedGameStart(
       instantBuild: false,
       randomSpawn: false,
       doomsdayClock: { enabled: true, speed: "veryfast" },
-      mod: { defcon: { lockNukes: false } }, // MOD: DEFCON runs, but scripted nukes must fire – see src/mod/core/ModGameConfig.ts
       ...overrides,
     },
     players: SCRIPTED_HUMANS.map((clientID, i) => ({

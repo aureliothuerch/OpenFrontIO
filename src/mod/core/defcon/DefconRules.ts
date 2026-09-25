@@ -62,20 +62,27 @@ export function nukesLockedAt(
   return tuning.lockNukes && !gameOver && level > tuning.nukeUnlockLevel;
 }
 
+const TICKS_PER_MINUTE = 600;
+
 /**
  * Percentage the schedule runs at in a game with a timer (`maxTimerValue`,
- * minutes). Shorter than the reference: proportionally shorter, but never
- * below the configured minimum. Never longer.
+ * minutes). What counts is the time the DEFCON clock actually gets: the timer
+ * runs from the end of the spawn phase, the clock only from the end of peace
+ * time. Less than the reference: proportionally shorter, but never below the
+ * configured minimum. Never longer.
+ *
+ * @param peaceTicks spawn immunity (peace time) in ticks
  */
 export function timerScalePercent(
   maxTimerValue: number | null | undefined,
   tuning: DefconTuning,
+  peaceTicks = 0,
 ): number {
   if (maxTimerValue === null || maxTimerValue === undefined) return 100;
-  if (maxTimerValue >= tuning.timerReferenceMinutes) return 100;
-  const percent = Math.floor(
-    (maxTimerValue * 100) / tuning.timerReferenceMinutes,
-  );
+  const availableTicks = maxTimerValue * TICKS_PER_MINUTE - peaceTicks;
+  const referenceTicks = tuning.timerReferenceMinutes * TICKS_PER_MINUTE;
+  if (availableTicks >= referenceTicks) return 100;
+  const percent = Math.floor((availableTicks * 100) / referenceTicks);
   return Math.max(tuning.timerMinScalePercent, percent);
 }
 
@@ -86,8 +93,9 @@ export function timerScalePercent(
 export function scaleForTimer(
   tuning: DefconTuning,
   maxTimerValue: number | null | undefined,
+  peaceTicks = 0,
 ): DefconTuning {
-  const percent = timerScalePercent(maxTimerValue, tuning);
+  const percent = timerScalePercent(maxTimerValue, tuning, peaceTicks);
   const scale = (ticks: number) => Math.floor((ticks * percent) / 100);
   const scaleLevels = (
     r: Record<DefconStepLevel, number>,

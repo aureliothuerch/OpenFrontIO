@@ -60,6 +60,8 @@ export class DefconExecution implements Execution {
   private pairLastAttackTick = new Map<number, number>();
   /** Traitor small id -> last tick one of their betrayals counted. */
   private traitorLastCountedTick = new Map<number, number>();
+  /** Whether the client was told that the game is over (lock lifted). */
+  private gameOverSent = false;
 
   /** Registers itself, so the nuke lock applies from game creation on. */
   constructor(
@@ -79,7 +81,14 @@ export class DefconExecution implements Execution {
   tick(ticks: number): void {
     if (this.mg === null) return;
     const mg = this.mg;
-    if (mg.getWinner() === null) {
+    if (mg.getWinner() !== null) {
+      // Frozen. Tell the client right away that the lock is lifted.
+      if (!this.gameOverSent) {
+        this.gameOverSent = true;
+        this.emit();
+        return;
+      }
+    } else {
       const peace = mg.isSpawnImmunityActive();
       this.pollAttacks(ticks, peace);
       if (!peace) {
@@ -217,6 +226,7 @@ export class DefconExecution implements Execution {
       level: this.currentLevel,
       previousLevel: this.previousLevel,
       reachedAtTick: this.reachedAt[this.currentLevel - 1] ?? 0,
+      gameOver: this.gameOver(),
     });
   }
 
@@ -232,6 +242,7 @@ export class DefconExecution implements Execution {
       // Insertion order is state: both maps are written and rebuilt in order.
       pairLastAttackTick: [...this.pairLastAttackTick],
       traitorLastCountedTick: [...this.traitorLastCountedTick],
+      gameOverSent: this.gameOverSent,
     });
   }
 
@@ -247,6 +258,7 @@ export class DefconExecution implements Execution {
     this.reachedAt = [...s.reachedAt];
     this.pairLastAttackTick = new Map(s.pairLastAttackTick);
     this.traitorLastCountedTick = new Map(s.traitorLastCountedTick);
+    this.gameOverSent = s.gameOverSent;
     registerDefcon(r.game, this);
   }
 }
@@ -278,6 +290,7 @@ const DefconStateSchema = z.object({
   reachedAt: z.array(zInt().nullable()).length(5),
   pairLastAttackTick: z.array(z.tuple([zInt(), zInt()])),
   traitorLastCountedTick: z.array(z.tuple([zInt(), zInt()])),
+  gameOverSent: z.boolean(),
 });
 type DefconState = z.infer<typeof DefconStateSchema>;
 

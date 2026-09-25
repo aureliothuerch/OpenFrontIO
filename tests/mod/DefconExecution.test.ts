@@ -411,6 +411,32 @@ describe("DefconExecution: conflicts", () => {
     );
   });
 
+  test("only living humans and nations shrink the bonus, not tribes or dead players", async () => {
+    const game = await plainsGame();
+    const players: Player[] = [];
+    for (let i = 0; i < 12; i++) {
+      players.push(
+        human(game, `p${i}`, (i % 4) * 25, Math.floor(i / 4) * 25, 25, 25),
+      );
+    }
+    for (let i = 0; i < 20; i++) tribe(game, `t${i}`, i * 5, 75, 5, 25);
+    // Players without land: never spawned or eliminated.
+    for (let i = 0; i < 6; i++) {
+      const dead = game.addPlayer(playerInfo(`dead${i}`, PlayerType.Human));
+      expect(dead.isAlive()).toBe(false);
+    }
+    const exec = startDefcon(game);
+    const clockStart = game.ticks();
+
+    startAttack(game, players[0], players[1]);
+    finishAttacks(game, players[0]);
+
+    // 12 living real players; the 20 tribes and 6 dead humans do not count.
+    expect(bonusAtDefcon4(game, exec, clockStart)).toBe(
+      Math.floor((CONFLICT * FAST.referencePlayers) / 12),
+    );
+  });
+
   test("an attack on a disconnected player does not count", async () => {
     const game = await plainsGame();
     const a = human(game, "a", 0, 0);
@@ -666,6 +692,17 @@ describe("DefconExecution: time and level", () => {
     for (const t of ALL_NUKES) {
       expect(modDefconBlocksUnit(game, t)).toBe(false);
     }
+    // The very next tick tells the client (lock lifted), exactly once.
+    const told = game.executeNextTick()[GameUpdateType.ModDefcon];
+    expect(told).toEqual([
+      {
+        type: GameUpdateType.ModDefcon,
+        level: 4,
+        previousLevel: 5,
+        reachedAtTick: exec.reachedAtTick(4),
+        gameOver: true,
+      },
+    ]);
 
     // Past every threshold, with fighting and betrayals: nothing moves.
     startAttack(game, a, n);
@@ -680,7 +717,14 @@ describe("DefconExecution: time and level", () => {
     expect(defconLevel(game)).toBe(4);
     // Heartbeats still go out, with the frozen level.
     expect(heartbeats.length).toBeGreaterThan(0);
-    for (const u of heartbeats) expect(u.level).toBe(4);
+    for (const u of heartbeats) {
+      expect(u.level).toBe(4);
+      expect(u.gameOver).toBe(true);
+    }
+    // Only heartbeats after the first notice: never two in one tick.
+    for (const u of heartbeats) {
+      expect(u.reachedAtTick).toBe(exec.reachedAtTick(4));
+    }
   });
 
   test("ModDefcon updates: on init, on every change and as heartbeat", async () => {
@@ -711,6 +755,7 @@ describe("DefconExecution: time and level", () => {
         level: 5,
         previousLevel: 5,
         reachedAtTick: 0,
+        gameOver: false,
       },
     ]);
     const changes = new Set(STEP_LEVELS.map((l) => exec.reachedAtTick(l)!));
@@ -725,6 +770,7 @@ describe("DefconExecution: time and level", () => {
             level,
             previousLevel: level + 1,
             reachedAtTick: t,
+            gameOver: false,
           },
         ]);
       } else if (t % FAST.heartbeatTicks === 0) {
@@ -734,6 +780,7 @@ describe("DefconExecution: time and level", () => {
             level,
             previousLevel: level === 5 ? 5 : level + 1,
             reachedAtTick: exec.reachedAtTick(level),
+            gameOver: false,
           },
         ]);
       } else {
@@ -1168,7 +1215,7 @@ async function expectScaledSchedule(
 
   const d = MOD_CONFIG.defcon;
   const tuning = defconSettings(game.config());
-  expect(tuning).toEqual(scaleForTimer(d, config.maxTimerValue));
+  expect(tuning).toEqual(scaleForTimer(d, config.maxTimerValue, peace));
   for (const l of STEP_LEVELS) {
     expect(tuning.latestTicks[l]).toBe(
       Math.floor((d.latestTicks[l] * percent) / 100),
@@ -1197,7 +1244,7 @@ async function expectScaledSchedule(
 
 describe("DefconExecution: games with a timer", () => {
   test(
-    "ranked 1v1 (10 minutes): the schedule runs at 50%",
+    "ranked 1v1 (10 minutes, 30 s peace): the schedule runs at 47%",
     async () => {
       const config = rankedConfig("1v1", 0.1); // compact -> 10 minutes
       expect(config.rankedType).toBe(RankedType.OneVOne);
@@ -1206,14 +1253,14 @@ describe("DefconExecution: games with a timer", () => {
       await expectScaledSchedule(
         config,
         [pinned("p1", 0), pinned("p2", 1)],
-        50,
+        47, // (6000 - 300) / 12000
       );
     },
     LONG,
   );
 
   test(
-    "ranked 2v2 (15 minutes): the schedule runs at 75%",
+    "ranked 2v2 (15 minutes, 60 s peace): the schedule runs at 70%",
     async () => {
       const config = rankedConfig("2v2", 0.9); // normal size -> 15 minutes
       expect(config.rankedType).toBe(RankedType.TwoVTwo);
@@ -1223,7 +1270,7 @@ describe("DefconExecution: games with a timer", () => {
       await expectScaledSchedule(
         config,
         [pinned("p1", 0), pinned("p2", 1), pinned("p3", 1), pinned("p4", 0)],
-        75,
+        70, // (9000 - 600) / 12000
       );
     },
     LONG,
@@ -1254,15 +1301,67 @@ describe("DefconExecution: games with a timer", () => {
       gameType: GameType.Public,
       gameMode: GameMode.FFA,
     } as unknown as GameConfig;
-    const at = (maxTimerValue: number | null | undefined) =>
-      defconSettings(new Config({ ...base, maxTimerValue }, null, false));
-    expect(at(10)).toEqual(scaleForTimer(MOD_CONFIG.defcon, 10));
-    expect(at(15)).toEqual(scaleForTimer(MOD_CONFIG.defcon, 15));
+    const at = (
+      maxTimerValue: number | null | undefined,
+      spawnImmunityDuration?: number,
+    ) =>
+      defconSettings(
+        new Config(
+          { ...base, maxTimerValue, spawnImmunityDuration },
+          null,
+          false,
+        ),
+      );
+    // A plain Config always has the default 5 s (50 ticks) spawn immunity.
+    const peace = new Config(base, null, false).spawnImmunityDuration();
+    expect(peace).toBe(50);
+    expect(at(10)).toEqual(scaleForTimer(MOD_CONFIG.defcon, 10, peace));
+    expect(at(15)).toEqual(scaleForTimer(MOD_CONFIG.defcon, 15, peace));
+    expect(at(10).latestTicks[2]).toBe(
+      Math.floor((MOD_CONFIG.defcon.latestTicks[2] * 49) / 100), // 5950/12000
+    );
     expect(at(5).latestTicks[4]).toBe(
       Math.floor((MOD_CONFIG.defcon.latestTicks[4] * 40) / 100),
     );
-    for (const t of [20, 30, null, undefined]) {
+    // Peace time eats into the timer: 20 min with 10 min peace -> 50%.
+    expect(at(20, 6000).latestTicks[2]).toBe(
+      Math.floor((MOD_CONFIG.defcon.latestTicks[2] * 50) / 100),
+    );
+    for (const t of [30, null, undefined]) {
       expect(at(t)).toEqual(MOD_CONFIG.defcon);
     }
   });
+
+  // Plan: the schedule must fit the time the timer leaves after peace time.
+  test.each([
+    { timer: 10, peaceMinutes: 5, percent: 40 }, // 25% clamped to 40%
+    { timer: 20, peaceMinutes: 10, percent: 50 },
+    { timer: 15, peaceMinutes: 4, percent: 55 },
+  ])(
+    "private lobby, $timer min timer and $peaceMinutes min peace time: DEFCON 2 by time comes before the timer ends",
+    async ({ timer, peaceMinutes, percent }) => {
+      const peace = peaceMinutes * 600;
+      const game = await plainsGame({
+        gameType: GameType.Private,
+        maxTimerValue: timer,
+      });
+      (game.config() as TestConfig).setSpawnImmunityDuration(peace);
+      const tuning = defconSettings(game.config());
+      const d = MOD_CONFIG.defcon;
+      expect(tuning.latestTicks[2]).toBe(
+        Math.floor((d.latestTicks[2] * percent) / 100),
+      );
+      const exec = new DefconExecution(game, tuning);
+      game.addExecution(exec);
+      const timerEnd = timer * 600;
+      runUntilLevel(game, exec, 2, timerEnd);
+      expect(exec.level()).toBe(2);
+      expect(exec.reachedAtTick(2)!).toBeLessThan(timerEnd);
+      // By time alone: exactly when the scaled clock gets there.
+      expect(exec.reachedAtTick(2)!).toBe(
+        Math.max(peace, 1) + tuning.latestTicks[2],
+      );
+    },
+    LONG,
+  );
 });

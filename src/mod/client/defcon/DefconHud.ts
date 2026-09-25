@@ -28,8 +28,7 @@ const LEVEL_COLOR: Readonly<Record<number, string>> = {
  */
 @customElement("mod-defcon-hud")
 export class DefconHud extends LitElement {
-  /** Mounted outside the sidebar stack: position the indicator itself. */
-  public floating = false;
+  private isFloating = false;
 
   @state()
   private view: DefconHudView | null = null;
@@ -38,6 +37,35 @@ export class DefconHud extends LitElement {
 
   createRenderRoot() {
     return this;
+  }
+
+  /** Mounted outside the sidebar stack: position the indicator itself. */
+  get floating(): boolean {
+    return this.isFloating;
+  }
+
+  set floating(value: boolean) {
+    this.isFloating = value;
+    this.applyHostStyle();
+  }
+
+  connectedCallback(): void {
+    super.connectedCallback();
+    this.applyHostStyle();
+  }
+
+  /**
+   * The host never takes clicks or layout space. Inside upstream's top-right
+   * stack it hangs just below the stack (absolute), so the stack's box does
+   * not grow into a band that would swallow clicks on the map.
+   */
+  private applyHostStyle(): void {
+    this.style.pointerEvents = "none";
+    const inStack = !this.isFloating;
+    this.style.position = inStack ? "absolute" : "";
+    this.style.top = inStack ? "100%" : "";
+    this.style.right = inStack ? "0" : "";
+    this.style.marginTop = inStack ? "0.5rem" : "";
   }
 
   show(view: DefconHudView): void {

@@ -82,6 +82,7 @@ export interface ErrorUpdate {
 }
 
 export enum GameUpdateType {
+  ModDefcon = -1, // MOD: DEFCON, first with its own value so upstream's members keep theirs – see src/mod/core/defcon/DefconUpdate.ts
   // Tile updates are delivered via `packedTileUpdates` on the outer GameUpdateViewData.
   Tile,
   Unit,
@@ -107,7 +108,6 @@ export enum GameUpdateType {
   SpawnPhaseEnd,
   GamePaused,
   DonateEvent,
-  ModDefcon, // MOD: DEFCON – see src/mod/core/defcon/DefconUpdate.ts
 }
 
 export type GameUpdate =

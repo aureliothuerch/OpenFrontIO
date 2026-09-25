@@ -9,11 +9,7 @@ import {
   UnitType,
 } from "../../../core/game/Game";
 import { UserSettings } from "../../../core/game/UserSettings";
-import {
-  modDefconBlocksUnitView,
-  modDefconHotbarClass,
-  modDefconHotbarHint,
-} from "../../../mod/client/defcon/DefconUiHooks";
+import * as DefconUi from "../../../mod/client/defcon/DefconUiHooks";
 import { Controller } from "../../Controller";
 import { ToggleStructureEvent } from "../../InputHandler";
 import { UIState } from "../../UIState";
@@ -96,7 +92,7 @@ export class UnitDisplay extends LitElement implements Controller {
 
   private canBuild(item: UnitType): boolean {
     if (this.game?.config().isUnitDisabled(item)) return false;
-    if (modDefconBlocksUnitView(this.game, item)) return false; // MOD: DEFCON – see src/mod/client/defcon/
+    if (DefconUi.modDefconBlocksUnitView(this.game, item)) return false; // MOD: DEFCON – see src/mod/client/defcon/
     const player = this.game?.myPlayer();
     switch (item) {
       case UnitType.AtomBomb:
@@ -267,7 +263,7 @@ export class UnitDisplay extends LitElement implements Controller {
                   ${translateText("build_menu.desc." + structureKey)}
                 </div>
                 ${
-                  modDefconHotbarHint(this.game, unitType) // MOD: DEFCON – see src/mod/client/defcon/
+                  DefconUi.modDefconHotbarHint(this.game, unitType) // MOD: DEFCON – see src/mod/client/defcon/
                 }
                 ${unitType === UnitType.Warship
                   ? html`<div
@@ -292,7 +288,7 @@ export class UnitDisplay extends LitElement implements Controller {
              ${selected ? "hover:bg-gray-400/10" : "hover:bg-gray-800"}
              rounded-sm text-white ${selected ? "bg-slate-400/20" : ""}
              ${
-            modDefconHotbarClass(this.game, unitType) // MOD: DEFCON – see src/mod/client/defcon/
+            DefconUi.modDefconHotbarClass(this.game, unitType) // MOD: DEFCON – see src/mod/client/defcon/
           }
              ${this.tutorialHighlight === unitType ? "tutorial-highlight" : ""}"
           @click=${() => {

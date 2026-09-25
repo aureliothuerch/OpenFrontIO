@@ -11,4 +11,11 @@ export interface ModDefconUpdate {
   previousLevel: number;
   /** The tick the current level was reached. */
   reachedAtTick: number;
+  /**
+   * The simulation's game-over verdict (a winner is decided): DEFCON is frozen
+   * and the nuke lock is lifted. The client must use this, not
+   * GameView.gameOver(), for the lock: a cancelled game ends without a winner,
+   * and then the simulation still locks.
+   */
+  gameOver: boolean;
 }

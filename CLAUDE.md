@@ -42,7 +42,7 @@ git cherry-pick <commit>         # later, once we diverge: pull single fixes onl
 
 - Resolve conflicts by keeping upstream's version and re-applying our `// MOD:` hooks.
 - After every merge: `npm test` and `npm run lint` must pass.
-- To list all our hooks in upstream files: `grep -rn "// MOD:" src/core src/client src/server`
+- To list all our hooks in upstream files: `grep -rn "// MOD:" src/core src/client src/server tests eslint.config.js`. Import lines of hooks are not marked (Prettier re-sorts them), and the `mod` block in `resources/lang/en.json` cannot carry a marker (JSON).
 
 ## Branching
 

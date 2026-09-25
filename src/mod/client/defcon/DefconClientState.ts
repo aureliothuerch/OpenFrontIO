@@ -14,6 +14,12 @@ import type { DefconTuning } from "../../core/ModConfig";
 export interface DefconClientState {
   readonly level: number;
   readonly tuning: DefconTuning;
+  /**
+   * The simulation's game-over verdict from the latest update (lock lifted).
+   * Not GameView.gameOver(): a cancelled game ends without a winner, and the
+   * simulation keeps its lock then.
+   */
+  readonly gameOver: boolean;
 }
 
 const states = new WeakMap<GameView, DefconClientState>();

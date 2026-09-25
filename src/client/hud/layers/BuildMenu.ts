@@ -11,10 +11,7 @@ import {
   UnitType,
 } from "../../../core/game/Game";
 import { TileRef } from "../../../core/game/GameMap";
-import {
-  modDefconBuildButtonStyle,
-  modDefconBuildHint,
-} from "../../../mod/client/defcon/DefconUiHooks";
+import * as DefconUi from "../../../mod/client/defcon/DefconUiHooks";
 import { Controller } from "../../Controller";
 import {
   CloseViewEvent,
@@ -436,11 +433,14 @@ export class BuildMenu extends LitElement implements Controller {
                       ? translateText("build_menu.not_enough_money")
                       : ""}
                     style=${
-                      modDefconBuildButtonStyle(this.game, item.unitType) // MOD: DEFCON – see src/mod/client/defcon/
+                      DefconUi.modDefconBuildButtonStyle(
+                        this.game,
+                        item.unitType,
+                      ) // MOD: DEFCON – see src/mod/client/defcon/
                     }
                   >
                     ${
-                      modDefconBuildHint(this.game, item.unitType) // MOD: DEFCON – see src/mod/client/defcon/
+                      DefconUi.modDefconBuildHint(this.game, item.unitType) // MOD: DEFCON – see src/mod/client/defcon/
                     }
                     <img
                       src=${item.icon}
