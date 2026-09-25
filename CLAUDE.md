@@ -81,6 +81,29 @@ Never commit directly to `main`. `main` must always be playable.
 - Keep branches small and short-lived. Merge them into `main` often.
 - Do not push, merge into `main` or delete branches without asking first.
 
+## TODO File
+
+Keep a short task list in `docs/mod/TODO.md` so progress survives between sessions.
+
+- Read it at the start of every session.
+- Only the **current milestone** with concrete steps. Big ideas live in the design doc, not here.
+- Use checkboxes: `- [ ]` open, `- [x]` done. Update them as you work.
+- Keep it short: regularly remove finished items or condense them into a one-line summary at the bottom.
+
+## Assets (Graphics, Sounds, Voice)
+
+Our own assets live in `resources/mod/` (e.g. `resources/mod/sounds/`, `resources/mod/images/`), never mixed into upstream asset folders.
+
+When a feature needs an asset that does not exist yet:
+
+1. **Never download assets from the internet** and never generate or copy assets of unknown origin.
+2. **Use a placeholder** so the feature still works: reuse an existing OpenFront asset (not from `proprietary/`), a simple shape/color, or silence for sounds.
+3. **Add it to `docs/mod/TODO.md`** as `- [ ] ASSET NEEDED: <file name> – <what it is, size/length, where it is used>`.
+4. Load assets through one central file in `src/mod/client/` so placeholders can be swapped later without touching feature code.
+5. When a real third-party asset is added, record its source and license in `CREDITS.md` under a `## Mod Assets` section at the end of the file.
+
+Existing OpenFront assets outside `proprietary/` may be reused (CC BY-SA 4.0). Modified versions of them must stay CC BY-SA 4.0.
+
 ## License & Branding
 
 - Code is **AGPL-3.0**, assets are **CC BY-SA 4.0**. Our full source (incl. server) must stay public.
