@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { renderNumber } from "../../client/Utils";
 import { UnitView } from "../../client/view";
+import { modDefconOnBetrayal } from "../../mod/core/defcon/DefconState";
 import { Config } from "../configuration/Config";
 import {
   SharedWaterCache,
@@ -886,6 +887,7 @@ export class GameImpl implements Game {
     const duration = this._ticks - alliance.createdAt();
     if (!other.isTraitor() && !other.isDisconnected()) {
       breaker.markTraitor();
+      modDefconOnBetrayal(this, breaker, other); // MOD: DEFCON betrayal trigger – see src/mod/core/defcon/
       // Only a real betrayal counts as being betrayed. Gated on the same
       // condition as markTraitor so that a teammate dropping their connection
       // is not recorded as having stabbed anyone in the back.

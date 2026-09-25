@@ -1,3 +1,4 @@
+import type { ModDefconUpdate } from "../../mod/core/defcon/DefconUpdate";
 import { AllPlayersStats, ClientID, Winner } from "../Schemas";
 import {
   EmojiMessage,
@@ -106,10 +107,12 @@ export enum GameUpdateType {
   SpawnPhaseEnd,
   GamePaused,
   DonateEvent,
+  ModDefcon, // MOD: DEFCON – see src/mod/core/defcon/DefconUpdate.ts
 }
 
 export type GameUpdate =
   | UnitUpdate
+  | ModDefconUpdate // MOD: DEFCON – see src/mod/core/defcon/DefconUpdate.ts
   | PlayerUpdate
   | AllianceRequestUpdate
   | AllianceRequestReplyUpdate

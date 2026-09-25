@@ -1,4 +1,5 @@
 import { placeName, placeSpawnName } from "../client/hud/NameBoxCalculator";
+import { modInitExecutions } from "../mod/core/ModExecutions";
 import { Config } from "./configuration/Config";
 import { DoomsdayClockExecution } from "./execution/DoomsdayClockExecution";
 import { Executor } from "./execution/ExecutionManager";
@@ -191,6 +192,7 @@ export class GameRunner {
         new RecomputeRailClusterExecution(this.game.railNetwork()),
       );
     }
+    this.game.addExecution(...modInitExecutions(this.game)); // MOD: mod executions (DEFCON) – see src/mod/core/ModExecutions.ts
   }
 
   public addTurn(turn: Turn): void {

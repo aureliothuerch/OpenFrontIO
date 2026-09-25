@@ -86,6 +86,7 @@ export function scriptedGameStart(
       instantBuild: false,
       randomSpawn: false,
       doomsdayClock: { enabled: true, speed: "veryfast" },
+      mod: { defcon: { lockNukes: false } }, // MOD: DEFCON runs, but scripted nukes must fire – see src/mod/core/ModGameConfig.ts
       ...overrides,
     },
     players: SCRIPTED_HUMANS.map((clientID, i) => ({

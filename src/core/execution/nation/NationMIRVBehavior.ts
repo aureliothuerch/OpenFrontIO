@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { modDefconNukesLocked } from "../../../mod/core/defcon/DefconState";
 import {
   AllPlayers,
   Difficulty,
@@ -132,6 +133,7 @@ export class NationMIRVBehavior {
 
   considerMIRV(): boolean {
     if (this.player === null) throw new Error("not initialized");
+    if (modDefconNukesLocked(this.game)) return false; // MOD: DEFCON nuke lock – see src/mod/core/defcon/
     if (this.game.config().isUnitDisabled(UnitType.MIRV)) {
       return false;
     }

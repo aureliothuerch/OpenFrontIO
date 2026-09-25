@@ -1,6 +1,7 @@
 import quickChatData from "resources/QuickChat.json";
 import { z } from "zod";
 import { zb } from "../../zbin";
+import { ModGameConfigSchema } from "../mod/core/ModGameConfig";
 import {
   ColorPaletteSchema,
   CosmeticNameSchema,
@@ -508,6 +509,7 @@ export const GameConfigSchema = z.object({
   gameMapSize: z.enum(GameMapSize),
   doomsdayClock: DoomsdayClockConfigSchema.optional(),
   overtime: OvertimeConfigSchema.optional(),
+  mod: ModGameConfigSchema.optional(), // MOD: mod lobby settings – see src/mod/core/ModGameConfig.ts
   publicGameModifiers: z
     .object({
       isCompact: z.boolean().optional(),

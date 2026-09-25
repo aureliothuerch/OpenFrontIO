@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { modDefconNukesLocked } from "../../../mod/core/defcon/DefconState";
 import {
   Difficulty,
   Game,
@@ -112,6 +113,7 @@ export class NationNukeBehavior {
   }
 
   maybeSendNuke() {
+    if (modDefconNukesLocked(this.game)) return; // MOD: DEFCON nuke lock – see src/mod/core/defcon/
     const silos = this.player.units(UnitType.MissileSilo);
     const config = this.game.config();
     if (

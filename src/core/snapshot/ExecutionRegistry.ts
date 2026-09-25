@@ -1,4 +1,5 @@
 // Every entry is `<ClassName>Snapshot`, exported next to its class.
+import { MOD_EXECUTION_SNAPSHOT_TYPES } from "../../mod/core/ModExecutions";
 import { AllianceExtensionExecutionSnapshot } from "../execution/alliance/AllianceExtensionExecution";
 import { AllianceRejectExecutionSnapshot } from "../execution/alliance/AllianceRejectExecution";
 import { AllianceRequestExecutionSnapshot } from "../execution/alliance/AllianceRequestExecution";
@@ -97,4 +98,5 @@ export const EXECUTION_SNAPSHOT_TYPES = [
   UpgradeStructureExecutionSnapshot,
   WarshipExecutionSnapshot,
   WinCheckExecutionSnapshot,
+  ...MOD_EXECUTION_SNAPSHOT_TYPES, // MOD: mod executions (DEFCON) – see src/mod/core/ModExecutions.ts
 ] as unknown as readonly ExecutionSnapshotType<unknown>[];

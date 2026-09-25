@@ -50,7 +50,10 @@ export default [
   {
     // The simulation must be bit-identical on every client. Math.exp & co.
     // are only "implementation approximated" by the spec; use DetMath.
-    files: ["src/core/**/*.ts"],
+    files: [
+      "src/core/**/*.ts",
+      "src/mod/core/**/*.ts", // MOD: same determinism rules for mod core
+    ],
     ignores: ["src/core/DetMath.ts"],
     rules: {
       "no-restricted-properties": [

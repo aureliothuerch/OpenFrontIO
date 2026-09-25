@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { modDefconBlocksUnit } from "../../mod/core/defcon/DefconState";
 import { PseudoRandom } from "../PseudoRandom";
 import { ClientID } from "../Schemas";
 import {
@@ -1453,6 +1454,7 @@ export class PlayerImpl implements Player {
     if (this.mg.config().isUnitDisabled(unitType)) {
       return false;
     }
+    if (modDefconBlocksUnit(this.mg, unitType)) return false; // MOD: DEFCON nuke lock – see src/mod/core/defcon/
     const cost = knownCost ?? this.mg.unitInfo(unitType).cost(this.mg, this);
     if (this._gold < cost) {
       return false;
