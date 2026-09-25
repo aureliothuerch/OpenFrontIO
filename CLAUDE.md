@@ -60,6 +60,27 @@ git cherry-pick <commit>         # later, once we diverge: pull single fixes onl
 - Keep branches short-lived. Merge `main` into long-running feature branches regularly to avoid big conflicts.
 - Before starting work, check which branch is checked out. If it's `main`, create a new branch first.
 
+## Branching Workflow
+
+Never commit directly to `main`. `main` must always be playable.
+
+- **One branch per feature or fix**, created from an up-to-date `main`:
+  ```bash
+  git checkout main
+  git pull
+  git checkout -b feature/defcon-system
+  ```
+- **Branch names:** `feature/<name>`, `fix/<name>`, `upstream/<date>` (e.g. `upstream/2026-10-01`).
+- **Upstream merges also happen on their own branch**, never directly on `main`:
+  ```bash
+  git checkout -b upstream/2026-10-01
+  git fetch upstream
+  git merge upstream/main
+  ```
+- Before merging a branch into `main`: `npm test` and `npm run lint` must pass.
+- Keep branches small and short-lived. Merge them into `main` often.
+- Do not push, merge into `main` or delete branches without asking first.
+
 ## License & Branding
 
 - Code is **AGPL-3.0**, assets are **CC BY-SA 4.0**. Our full source (incl. server) must stay public.
