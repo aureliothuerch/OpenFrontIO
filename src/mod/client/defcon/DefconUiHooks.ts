@@ -6,7 +6,7 @@ import type {
 } from "../../../client/hud/layers/RadialMenuElements";
 import { showToast, translateText } from "../../../client/Utils";
 import type { GameView } from "../../../client/view";
-import type { UnitType } from "../../../core/game/Game";
+import type { Gold, UnitType } from "../../../core/game/Game";
 import { blocksUnit, NUKE_WEAPON_TYPES } from "../../core/defcon/DefconRules";
 import { defconClientState } from "./DefconClientState";
 import { defconLockedHint, type TextRef } from "./DefconText";
@@ -94,6 +94,23 @@ export function modDefconBuildButtonStyle(
 ): string | typeof nothing {
   if (lockedHintRef(game, unitType) === null) return nothing;
   return "background-color: #450a0a; border-color: #ef4444;";
+}
+
+/**
+ * The build menu button's native tooltip. Upstream says "Not enough money"
+ * for every disabled button. When DEFCON is what locks the nuke and the player
+ * can afford it, that would be wrong: no tooltip then, only the red DEFCON
+ * hint. When gold is missing as well, upstream's text stays.
+ */
+export function modDefconBuildTitle(
+  game: GameView | null | undefined,
+  unitType: UnitType,
+  cost: Gold,
+  upstreamTitle: string,
+): string {
+  if (lockedHintRef(game, unitType) === null) return upstreamTitle;
+  const gold = game?.myPlayer()?.gold() ?? 0n;
+  return gold >= cost ? "" : upstreamTitle;
 }
 
 /**

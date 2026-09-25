@@ -429,9 +429,16 @@ export class BuildMenu extends LitElement implements Controller {
                     @click=${() =>
                       this.sendBuildOrUpgrade(buildableUnit, this.clickedTile)}
                     ?disabled=${!enabled}
-                    title=${!enabled
-                      ? translateText("build_menu.not_enough_money")
-                      : ""}
+                    title=${
+                      DefconUi.modDefconBuildTitle(
+                        this.game,
+                        item.unitType,
+                        this.cost(item),
+                        !enabled
+                          ? translateText("build_menu.not_enough_money")
+                          : "",
+                      ) // MOD: DEFCON – see src/mod/client/defcon/
+                    }
                     style=${
                       DefconUi.modDefconBuildButtonStyle(
                         this.game,

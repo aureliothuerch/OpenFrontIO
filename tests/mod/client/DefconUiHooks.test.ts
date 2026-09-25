@@ -1,5 +1,7 @@
 import { nothing, render, type TemplateResult } from "lit";
 import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
+import "../../../src/client/hud/layers/BuildMenu";
+import type { BuildMenu } from "../../../src/client/hud/layers/BuildMenu";
 import type { TooltipItem } from "../../../src/client/hud/layers/RadialMenu";
 import {
   attackMenuElement,
@@ -32,6 +34,7 @@ import {
   modDefconBlocksUnitView,
   modDefconBuildButtonStyle,
   modDefconBuildHint,
+  modDefconBuildTitle,
   modDefconDecorateRadial,
   modDefconHotbarClass,
   modDefconHotbarHint,
@@ -106,6 +109,8 @@ function gameConfig(overrides: Partial<GameConfig> = {}): GameConfig {
 /** Only what the hooks (and UnitDisplay.canBuild) read from a GameView. */
 class FakeGame {
   over = false;
+  /** The player's gold; rich unless a test says otherwise. */
+  gold = 1_000_000_000n;
   constructor(private cfg: Config) {}
   config(): Config {
     return this.cfg;
@@ -117,13 +122,14 @@ class FakeGame {
   myPlayer(): unknown {
     const cfg = this.cfg;
     return {
-      gold: () => 1_000_000_000n,
+      gold: () => this.gold,
       units: (type: UnitType) =>
         (type === UnitType.MissileSilo || type === UnitType.Port) &&
         !cfg.isUnitDisabled(type)
           ? [{}]
           : [],
       readyMissileCount: () => 0,
+      totalUnitLevels: () => 0, // BuildMenu counts
     };
   }
   inSpawnPhase(): boolean {
@@ -977,5 +983,125 @@ describe("DefconUiHooks in the real hotbar (UnitDisplay.canBuild hook)", () => {
     for (const t of scenario.disabledUnits ?? []) {
       expect(canBuild(setup.view, t), t).toBe(false);
     }
+  });
+});
+
+// The build menu's native tooltip says "Not enough money" for every disabled
+// button. When DEFCON is the reason, only the red DEFCON hint may show; when
+// gold is missing as well, both may.
+describe("DefconUiHooks: build menu tooltip", () => {
+  const MONEY = "build_menu.not_enough_money";
+  const COST = 750_000n;
+
+  it("locked by DEFCON with enough gold: no 'Not enough money', only the red hint", () => {
+    const setup = setupGame({ level: 5 });
+    for (const t of NUKES) {
+      expect(modDefconBuildTitle(setup.view, t, COST, MONEY), t).toBe("");
+      expect(modDefconLockedHint(setup.view, t), t).toBe(HINT);
+    }
+  });
+
+  it("exactly affordable counts as enough gold", () => {
+    const setup = setupGame({ level: 4 });
+    setup.game.gold = COST;
+    for (const t of NUKES) {
+      expect(modDefconBuildTitle(setup.view, t, COST, MONEY), t).toBe("");
+    }
+  });
+
+  it("locked by DEFCON and gold missing too: both stay", () => {
+    const setup = setupGame({ level: 3 });
+    setup.game.gold = COST - 1n;
+    for (const t of NUKES) {
+      expect(modDefconBuildTitle(setup.view, t, COST, MONEY), t).toBe(MONEY);
+      expect(modDefconLockedHint(setup.view, t), t).toBe(HINT);
+    }
+  });
+
+  it("a cancelled game (GameView over, no winner) is still locked: no 'Not enough money'", () => {
+    const setup = setupGame({ level: 5, viewOver: true });
+    for (const t of NUKES) {
+      expect(modDefconBuildTitle(setup.view, t, COST, MONEY), t).toBe("");
+    }
+  });
+
+  it.each(NEUTRAL_SCENARIOS)(
+    "leaves upstream's tooltip alone when DEFCON is not the reason: $name",
+    (scenario) => {
+      const setup = setupGame(scenario);
+      for (const t of ALL_UNIT_TYPES) {
+        if (scenario.red.includes(t)) continue;
+        expect(modDefconBuildTitle(setup.view, t, COST, MONEY), t).toBe(MONEY);
+        expect(modDefconBuildTitle(setup.view, t, COST, ""), t).toBe("");
+      }
+    },
+  );
+
+  it("leaves non-nuke buttons and games without DEFCON state alone", () => {
+    const setup = setupGame({ level: 5 });
+    for (const t of ALL_UNIT_TYPES.filter((t) => !NUKES.includes(t))) {
+      expect(modDefconBuildTitle(setup.view, t, COST, MONEY), t).toBe(MONEY);
+    }
+    clearDefconClientState(setup.view);
+    for (const t of NUKES) {
+      expect(modDefconBuildTitle(setup.view, t, COST, MONEY), t).toBe(MONEY);
+    }
+    expect(modDefconBuildTitle(null, UnitType.AtomBomb, COST, MONEY)).toBe(
+      MONEY,
+    );
+  });
+
+  describe("in the real build menu (BuildMenu hook)", () => {
+    async function titles(setup: Setup): Promise<Map<string, string | null>> {
+      const menu = document.createElement("build-menu") as BuildMenu;
+      menu.game = setup.view;
+      // Locked nukes come back from the worker with canBuild false.
+      menu.playerBuildables = [
+        ...NUKES.map((type) => ({
+          type,
+          canBuild: false as const,
+          canUpgrade: false as const,
+          cost: COST,
+        })),
+        {
+          type: UnitType.City,
+          canBuild: false as const,
+          canUpgrade: false as const,
+          cost: COST,
+        },
+      ] as unknown as BuildMenu["playerBuildables"];
+      document.body.append(menu);
+      try {
+        await menu.updateComplete;
+        const out = new Map<string, string | null>();
+        for (const button of menu.shadowRoot!.querySelectorAll("button")) {
+          const alt = button.querySelector("img")?.getAttribute("alt");
+          if (alt) out.set(alt, button.getAttribute("title"));
+        }
+        return out;
+      } finally {
+        menu.remove();
+      }
+    }
+
+    it("DEFCON-locked, affordable nukes get no 'Not enough money'; other disabled buttons keep it", async () => {
+      const setup = setupGame({ level: 5 });
+      const t = await titles(setup);
+      for (const n of NUKES) expect(t.get(n), n).toBe("");
+      expect(t.get(UnitType.City)).toBe(MONEY);
+    });
+
+    it("keeps 'Not enough money' when gold is missing too", async () => {
+      const setup = setupGame({ level: 5 });
+      setup.game.gold = COST - 1n;
+      const t = await titles(setup);
+      for (const n of NUKES) expect(t.get(n), n).toBe(MONEY);
+    });
+
+    it("is upstream once DEFCON unlocks", async () => {
+      const setup = setupGame({ level: UNLOCK });
+      const t = await titles(setup);
+      for (const n of NUKES) expect(t.get(n), n).toBe(MONEY);
+    });
   });
 });
