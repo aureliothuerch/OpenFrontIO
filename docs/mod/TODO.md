@@ -8,13 +8,14 @@
 - [x] Core: `ModConfig`, `ModGameConfig`, `DefconRules`, `DefconSettings`, `DefconExecution`, `DefconState`
 - [x] Core hooks: GameRunner, ExecutionRegistry, GameUpdates, PlayerImpl, GameImpl, NationNuke, NationMIRV, Schemas
 - [x] Client: controller, HUD, banner/alarm (`decideDefconAnnouncement`), texts, sound
-- [x] Client hooks: GameRenderer, UnitDisplay, BuildMenu, RadialMenuElements
+- [x] Client hooks: GameRenderer, UnitDisplay, BuildMenu, RadialMenuElements, SinglePlayerModal, HostLobbyModal, LobbySettingsSummary
+- [x] Server hook: ConfigPatch (`applyModConfigPatch`, merges `mod` field by field)
 - [x] Tests in `tests/mod/` (rules, execution, host settings, nuke lock, snapshots, announce, texts)
 - [x] `npm test`, `npm run lint`, `tsc`, prettier all green (only the 3 known failures: 2× jq, 1× number format)
 - [x] DEFCON pace 20% faster. New values for `src/mod/core/ModConfig.ts`:
   - `latestTicks { 4: 1920, 3: 3840, 2: 5760, 1: 7680 }` (3:12 / 6:24 / 9:36 / 12:48)
   - `earliestTicks { 4: 720, 3: 1920, 2: 3360, 1: 5280 }` (1:12 / 3:12 / 5:36 / 8:48)
-- [ ] Switch "DEFCON on/off" in the host lobby and the singleplayer menu. Prepared via `GameConfig.mod.defcon.enabled`; default: on. (The server only copies host patches listed in `src/server/ConfigPatch.ts`, so `mod` needs to go there too.)
+- [x] Switch "DEFCON on/off" in the host lobby and the singleplayer menu (`GameConfig.mod.defcon.enabled`, default on). Other players see "DEFCON: Disabled" in the lobby when it is off; only the host can change it. Later mod lobby switches plug into `src/mod/client/ModLobbySettings.ts` and reuse the same hooks.
 
 ## Assets
 
@@ -24,6 +25,7 @@
 
 - Tutorial step "launch atom bomb" waits until DEFCON 2 (left as is, see roadmap "Später").
 - `resources/lang/en.json` has a `mod` block that cannot carry a `// MOD:` marker (JSON). Remember it when merging upstream.
+- `src/client/utilities/LobbySettingsSummary.ts` is brand new upstream, so expect changes there when merging.
 - `tests/replay/ReplayGame.ts` (dev tool, not in `npm test`) cannot replay upstream recordings that use nukes any more.
 
 ## Playtest questions

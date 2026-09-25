@@ -6,6 +6,7 @@ import {
   GameType,
 } from "../../core/game/Game";
 import { GameConfig } from "../../core/Schemas";
+import * as ModLobby from "../../mod/client/ModLobbySettings";
 
 // Non-default settings worth surfacing, shared by the join modal (post-join
 // config view and open-lobby rows) and the custom-lobby info tooltip on
@@ -104,6 +105,7 @@ export function notableLobbySettings(
         `doomsday_clock_speed.${c.doomsdayClock.speed ?? "normal"}`,
       ),
     });
+  items.push(...ModLobby.notableSettings(c)); // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
   if (c.overtime?.enabled)
     items.push({
       label: translateText("overtime.title"),

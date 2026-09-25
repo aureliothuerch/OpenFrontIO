@@ -1538,6 +1538,7 @@
       "desc_3": "Forces on high alert",
       "desc_4": "Increased readiness",
       "level": "DEFCON {level}",
+      "lobby_toggle": "DEFCON",
       "locked_hint": "Only available from DEFCON {level}",
       "nukes_from": "Nukes from DEFCON {level}",
       "nukes_released": "Nuclear weapons released: {units}"

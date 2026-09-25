@@ -1,4 +1,5 @@
 import { GameConfig } from "../core/Schemas";
+import { applyModConfigPatch } from "../mod/core/ModGameConfig";
 
 // The host edits its lobby through update_game_config, which carries a
 // partial GameConfig. Only the keys listed here are taken from it. gameType,
@@ -81,6 +82,7 @@ export function applyGameConfigPatch(
   for (const key of NULLABLE_KEYS) {
     copyNullable(target, patch, key);
   }
+  applyModConfigPatch(target, patch); // MOD: mod lobby settings, merged field by field – see src/mod/core/ModGameConfig.ts
   // Unconditional on purpose: the host clears cheats by omitting hostCheats
   // (the full config it sends has hostCheats: undefined when the toggle is
   // off), so `undefined` here means "clear", not "leave unchanged".

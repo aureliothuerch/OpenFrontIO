@@ -43,6 +43,7 @@ import {
   toOptionalNumber,
 } from "./utilities/GameConfigHelpers";
 
+import * as ModLobby from "../mod/client/ModLobbySettings";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 
 /**
@@ -207,6 +208,7 @@ export class SinglePlayerModal extends BaseModal {
   @state() private doomsdayClock: boolean = DEFAULT_OPTIONS.doomsdayClock;
   @state() private doomsdayClockSpeed: DoomsdayClockSpeed =
     DEFAULT_OPTIONS.doomsdayClockSpeed;
+  @state() private modLobby = ModLobby.defaults(); // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
   @state() private overtime: boolean = DEFAULT_OPTIONS.overtime;
   @state() private overtimeStartMinutes: number | undefined =
     DEFAULT_OPTIONS.overtimeStartMinutes;
@@ -541,6 +543,7 @@ export class SinglePlayerModal extends BaseModal {
                     labelKey: "game_settings.water_nukes",
                     checked: this.waterNukes,
                   },
+                  ...ModLobby.toggles(this.modLobby), // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
                   {
                     labelKey: "game_settings.doomsday_clock",
                     checked: this.doomsdayClock,
@@ -596,6 +599,7 @@ export class SinglePlayerModal extends BaseModal {
   // Check if any options other than map and difficulty have been changed from defaults
   private hasOptionsChanged(): boolean {
     return (
+      ModLobby.optionsChanged(this.modLobby) || // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
       this.nations !== this.defaultNationCount ||
       this.bots !== DEFAULT_OPTIONS.bots ||
       this.infiniteGold !== DEFAULT_OPTIONS.infiniteGold ||
@@ -688,6 +692,7 @@ export class SinglePlayerModal extends BaseModal {
     this.waterNukes = DEFAULT_OPTIONS.waterNukes;
     this.doomsdayClock = DEFAULT_OPTIONS.doomsdayClock;
     this.doomsdayClockSpeed = DEFAULT_OPTIONS.doomsdayClockSpeed;
+    this.modLobby = ModLobby.defaults(); // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
     this.overtime = DEFAULT_OPTIONS.overtime;
     this.overtimeStartMinutes = DEFAULT_OPTIONS.overtimeStartMinutes;
   }
@@ -788,6 +793,8 @@ export class SinglePlayerModal extends BaseModal {
         this.doomsdayClock = checked;
         break;
       default:
+        if (!ModLobby.isToggle(labelKey)) break; // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
+        this.modLobby = ModLobby.toggled(this.modLobby, labelKey, checked); // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
         break;
     }
   };
@@ -1177,6 +1184,7 @@ export class SinglePlayerModal extends BaseModal {
                       },
                     }
                   : {}),
+                ...ModLobby.gameConfig(this.modLobby), // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
                 ...(this.overtime
                   ? {
                       overtime: {

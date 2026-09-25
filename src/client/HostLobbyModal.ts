@@ -27,6 +27,7 @@ import {
   LobbyInfoEvent,
   TeamCountConfig,
 } from "../core/Schemas";
+import * as ModLobby from "../mod/client/ModLobbySettings";
 import { createLobby, getUserMe, queueLobby, setLobbyListed } from "./Api";
 import "./components/baseComponents/Modal";
 import { BaseModal } from "./components/BaseModal";
@@ -92,6 +93,7 @@ export class HostLobbyModal extends BaseModal {
   @state() private customAllianceMinutes: number | undefined = undefined;
   @state() private doomsdayClock: boolean = false;
   @state() private doomsdayClockSpeed: DoomsdayClockSpeed = "normal";
+  @state() private modLobby = ModLobby.defaults(); // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
   @state() private overtime: boolean = false;
   @state() private overtimeStartMinutes: number | undefined = undefined;
   @state() private anonymizeNames: boolean = false;
@@ -667,6 +669,7 @@ export class HostLobbyModal extends BaseModal {
                     labelKey: "game_settings.water_nukes",
                     checked: this.waterNukes,
                   },
+                  ...ModLobby.toggles(this.modLobby), // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
                   {
                     labelKey: "game_settings.doomsday_clock",
                     checked: this.doomsdayClock,
@@ -990,6 +993,7 @@ export class HostLobbyModal extends BaseModal {
     this.customAllianceMinutes = undefined;
     this.doomsdayClock = false;
     this.doomsdayClockSpeed = "normal";
+    this.modLobby = ModLobby.defaults(); // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
     this.overtime = false;
     this.overtimeStartMinutes = undefined;
     this.anonymizeNames = false;
@@ -1109,6 +1113,9 @@ export class HostLobbyModal extends BaseModal {
         this.putGameConfig();
         break;
       default:
+        if (!ModLobby.isToggle(labelKey)) break; // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
+        this.modLobby = ModLobby.toggled(this.modLobby, labelKey, checked); // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
+        this.putGameConfig(); // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
         break;
     }
   };
@@ -1581,6 +1588,7 @@ export class HostLobbyModal extends BaseModal {
             doomsdayClock: this.doomsdayClock
               ? { enabled: true, speed: this.doomsdayClockSpeed }
               : { enabled: false },
+            ...ModLobby.gameConfig(this.modLobby), // MOD: mod lobby settings (DEFCON switch) – see src/mod/client/ModLobbySettings.ts
             // Same {enabled:false} rule as doomsdayClock above: undefined is
             // dropped by JSON.stringify, so the toggle could never turn off.
             overtime: this.overtime
